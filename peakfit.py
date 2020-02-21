@@ -37,7 +37,7 @@ class Gauss:
         if not self.x0_init:
             self.x0_init = x[np.argmax(y)]
         if not self.fwhm_init:
-            self.fwhm_init = np.ptp( x[ y - y.min() > y.max()/2 ] )
+            self.fwhm_init = np.ptp( x[ y  > (y.min() + y.max())/2 ] )
         if not self.amplitude_init:
             self.amplitude_init = np.ptp(y)
  
@@ -85,7 +85,7 @@ class Lorentzian:
         if not self.x0_init:
             self.x0_init = x[np.argmax(y)]
         if not self.fwhm_init:
-            self.fwhm_init = np.ptp( x[ y - y.min() > y.max()/2 ] )
+            self.fwhm_init = np.ptp( x[ y  > (y.min() + y.max())/2 ] )
         if not self.amplitude_init:
             self.amplitude_init = np.ptp(y)
  
@@ -112,29 +112,15 @@ class Sum:
         return (*p_a, *p_b)
 
 
-def flatten(t):
-    """Unpack nested list or tuple
-    i.e. keep only one level of nesting
-    note: only check the first level
-    >>> flatten([['a', 'b'], [['c', 'd'], ('e', 'f')]])
-    [['a', 'b'], ['c', 'd'], ('e', 'f')]
-    """
-    out = []
-    for el in t:
-        if isinstance(el[0], list) or isinstance(el[0], tuple):
-            out.extend(el)
-        else:
-            out.append(el)
-    return out
-
-
-def peakfit(x, y, function=Sum(Gauss(), Linear())):
+def peakfit(x, y, function=Gauss(), background=Linear()):
     """Fit the data (x, y
         using the provided function)"""
 
+    if background is not None:
+        function = Sum(function, background)
+        
     p0 = function.estimate_param(x, y)
-    
-
+ 
     popt, pcov = curve_fit(function, x, y, p0)
 
     result = []
