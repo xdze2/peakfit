@@ -93,7 +93,7 @@ class Lorentzian:
 
 
 class Sum:
-    """Build a new function as the sum of two function"""
+    """Build a new function as the sum of two functions"""
     def __init__(self, a, b):
         self.a = a
         self.b = b
