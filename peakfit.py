@@ -7,36 +7,53 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.3.3
+#       jupytext_version: 1.4.2
 #   kernelspec:
-#     display_name: py3 venv
+#     display_name: Python 3
 #     language: python
-#     name: py3
+#     name: python3
 # ---
 
 import numpy as np
 from scipy.optimize import curve_fit
 
 
-# # Fit Peak
+# # Fit Peak
+
+# +
+# How it works:
+#
+#    function a -> parameters are [(a1, a2), ]
+#    function b -> parameters are [(b1, b2, b3), ]
+#
+#    note the 1-element list
+#    it allows to simply write `param_a+b = param_a + param_b`
+#    when two functions are added
+#
+#    Sum(f_a, f_b) -> parameters are [(a1, a2), (b1, b2, b3)]
+#
+#    `estimate_param` returns a flattened version of the parameter
+#    (a1, a2, b1, b2 b3)
+#
+# -
 
 class Linear:
     """Linear function"""
     def __init__(self, slope=None, intercept=None):
         self.slope_init = slope
         self.intercept_init = intercept
-        self.param_name = [('slope', 'intercept'), ]
-        self.name = 'linear'
-        
+        self.param_names = [('slope', 'intercept'), ]
+        self.name = ['Linear', ]
+
     def __call__(self, x, slope, intercept):
         return x*slope + intercept
-    
+
     def estimate_param(self, x, y):
         if not self.slope_init:
             self.slope_init = (y[-1] - y[0])/(x[-1] - x[0])
         if not self.intercept_init:
             self.intercept_init = y[0] - self.slope_init*x[0]
- 
+
         return self.slope_init, self.intercept_init
 
 
@@ -46,13 +63,13 @@ class Gauss:
         self.x0_init = x0
         self.fwhm_init = fwhm
         self.amplitude_init = ampl
-        self.param_name = [('x0', 'fwhm', 'amplitude'), ]
-        self.name = 'Gaussian'
-        
+        self.param_names = [('x0', 'fwhm', 'amplitude'), ]
+        self.name = ['Gaussian', ]
+
     def __call__(self, x, x0, fwhm, amplitude):
         sigma = fwhm /( 2*np.sqrt(2*np.log(2)) )
         return amplitude * np.exp( -(x-x0)**2/(2*sigma**2) )
-    
+
     def estimate_param(self, x, y):
         if not self.x0_init:
             self.x0_init = x[np.argmax(y)]
@@ -60,27 +77,27 @@ class Gauss:
             self.fwhm_init = np.ptp( x[ y  > (y.min() + y.max())/2 ] )
         if not self.amplitude_init:
             self.amplitude_init = np.ptp(y)
- 
+
         return self.x0_init, self.fwhm_init, self.amplitude_init
 
 
 class Lorentzian:
     """Lorentzian function (or Cauchy distribution)
-        
+
        I = 1/( 1 + x^2 )
     """
     def __init__(self, x0=None, fwhm=None, ampl=None):
         self.x0_init = x0
         self.fwhm_init = fwhm
         self.amplitude_init = ampl
-        self.param_name = [('x0', 'fwhm', 'amplitude'), ]
-        self.name = 'Lorentzian'
-        
+        self.param_names = [('x0', 'fwhm', 'amplitude'), ]
+        self.name = ['Lorentzian', ]
+
     def __call__(self, x, x0, fwhm, amplitude):
         hwhm = fwhm / 2
         u = x - x0
         return amplitude/( 1 + (u/hwhm)**2 )
-    
+
     def estimate_param(self, x, y):
         if not self.x0_init:
             self.x0_init = x[np.argmax(y)]
@@ -88,18 +105,18 @@ class Lorentzian:
             self.fwhm_init = np.ptp( x[ y  > (y.min() + y.max())/2 ] )
         if not self.amplitude_init:
             self.amplitude_init = np.ptp(y)
- 
+
         return self.x0_init, self.fwhm_init, self.amplitude_init
 
 
 class PseudoVoigt:
-    """PseudoVoigt function 
-    
+    """PseudoVoigt function
+
     approximation of the Voigt function
     weighted sum of Gaussian and Lorentzian function
-      
+
         PV(x) = eta*G(x) + (1-eta)*L(x)
-        
+
     # see:
     # https://docs.mantidproject.org/nightly/fitting/fitfunctions/PseudoVoigt.html
     """
@@ -108,22 +125,22 @@ class PseudoVoigt:
         self.fwhm_init = fwhm
         self.amplitude_init = ampl
         self.eta_init = eta
-        self.param_name = [('x0', 'fwhm', 'amplitude', 'eta'), ]
-        self.name = 'PseudoVoigt'
-        
+        self.param_names = [('x0', 'fwhm', 'amplitude', 'eta'), ]
+        self.name = ['PseudoVoigt', ]
+
     def __call__(self, x, x0, fwhm, amplitude, eta):
         hwhm = fwhm / 2
         u = x - x0
-        
+
         L = hwhm/(u**2 + hwhm**2)/np.pi
-        
+
         sigma = hwhm / np.sqrt(2*np.log(2))
         norm_G = 1/(sigma * np.sqrt(2*np.pi))
         G = norm_G * np.exp( -(x-x0)**2/(2*sigma**2) )
-        
+
         I = amplitude*np.pi*hwhm/(1 + eta*(np.sqrt(np.pi*np.log(2)) - 1))
         return ( eta*G + (1 - eta)*L ) * I
-    
+
     def estimate_param(self, x, y):
         if not self.x0_init:
             self.x0_init = x[np.argmax(y)]
@@ -133,7 +150,7 @@ class PseudoVoigt:
             self.amplitude_init = np.ptp(y)
         if not self.eta_init:
             self.eta_init = 0.5
-            
+
         return self.x0_init, self.fwhm_init, \
                 self.amplitude_init, self.eta_init
 
@@ -143,15 +160,17 @@ class Sum:
     def __init__(self, a, b):
         self.a = a
         self.b = b
-        
-        self.param_name = a.param_name + b.param_name
-        
+
+        # param are list of list
+        self.param_names = a.param_names + b.param_names
+        self.name = (*a.name, *b.name)
+
     def __call__(self, x, *p):
-        nargs_a = sum(len(u) for u in self.a.param_name)
+        nargs_a = sum(len(u) for u in self.a.param_names)
         p_a = p[:nargs_a]
         p_b = p[nargs_a:]
         return self.a(x, *p_a) + self.b(x, *p_b)
-    
+
     def estimate_param(self, x, y):
         p_a = self.a.estimate_param(x, y)
         p_b = self.b.estimate_param(x, y)
@@ -160,12 +179,12 @@ class Sum:
 
 def peakfit(x, y, function=Gauss(), background=Linear()):
     """Fit the data (x, y) using the provided function
-    
+
        The background function is summed to the function
        - Default function is `Gauss()`
        - Default background is `Linear()`
        - Set to `̀None` if no background is wanted.
-       
+
        Returns:
        - list of dictionary parameters (one for each function)
        - global fit function with optimal parameters
@@ -173,24 +192,22 @@ def peakfit(x, y, function=Gauss(), background=Linear()):
 
     if background is not None:
         function = Sum(function, background)
-        
+
     p0 = function.estimate_param(x, y)
- 
+
     popt, pcov = curve_fit(function, x, y, p0)
+    parameter_err = np.sqrt(np.diag(pcov))
 
     result = []
     idx = 0
-    for names in function.param_name:
-        res = {}
-        for name in names:
-            res[name] = popt[idx]
+    for f_name, params in zip(function.name, function.param_names):
+        res = {'function':f_name}
+        for param in params:
+            res[param] = popt[idx]
+            res[param + '_std'] = parameter_err[idx]
             idx += 1
 
         result.append(res)
-    
+
+
     return result, lambda x:function(x, *popt)
-
-# +
-
-
-
