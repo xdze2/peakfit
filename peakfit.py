@@ -20,6 +20,26 @@ from scipy.optimize import curve_fit
 
 # # Fit Peak
 
+class Linear:
+    """Linear function"""
+    def __init__(self, slope=None, intercept=None):
+        self.slope_init = slope
+        self.intercept_init = intercept
+        self.param_name = [('slope', 'intercept'), ]
+        self.name = 'linear'
+        
+    def __call__(self, x, slope, intercept):
+        return x*slope + intercept
+    
+    def estimate_param(self, x, y):
+        if not self.slope_init:
+            self.slope_init = (y[-1] - y[0])/(x[-1] - x[0])
+        if not self.intercept_init:
+            self.intercept_init = y[0] - self.slope_init*x[0]
+ 
+        return self.slope_init, self.intercept_init
+
+
 class Gauss:
     """Gaussian function"""
     def __init__(self, x0=None, fwhm=None, ampl=None):
@@ -44,30 +64,10 @@ class Gauss:
         return self.x0_init, self.fwhm_init, self.amplitude_init
 
 
-class Linear:
-    """Linear function"""
-    def __init__(self, slope=None, intercept=None):
-        self.slope_init = slope
-        self.intercept_init = intercept
-        self.param_name = [('slope', 'intercept'), ]
-        self.name = 'linear'
-        
-    def __call__(self, x, slope, intercept):
-        return x*slope + intercept
-    
-    def estimate_param(self, x, y):
-        if not self.slope_init:
-            self.slope_init = (y[-1] - y[0])/(x[-1] - x[0])
-        if not self.intercept_init:
-            self.intercept_init = y[0] - self.slope_init*x[0]
- 
-        return self.slope_init, self.intercept_init
-
-
 class Lorentzian:
     """Lorentzian function (or Cauchy distribution)
         
-        I = 1/( 1 + x^2 )
+       I = 1/( 1 + x^2 )
     """
     def __init__(self, x0=None, fwhm=None, ampl=None):
         self.x0_init = x0
@@ -113,8 +113,17 @@ class Sum:
 
 
 def peakfit(x, y, function=Gauss(), background=Linear()):
-    """Fit the data (x, y
-        using the provided function)"""
+    """Fit the data (x, y) using the provided function
+    
+       The background function is summed to the function
+       - Default function is `Gauss()`
+       - Default background is `Linear()`
+       - Set to `̀None` if no background is wanted.
+       
+       Returns:
+       - list of dictionary parameters (one for each function)
+       - global fit function with optimal parameters
+    """
 
     if background is not None:
         function = Sum(function, background)

@@ -1,21 +1,29 @@
 # peakfit
-Wrapper around Scipy curve_fit to fit peak shaped data
 
+Wrapper around scipy _curve_fit(*)_ to fit peak shaped data
 
+- include basic peak functions (Gauss, Lorentzian)
+- method to automate estimation of the initial parameters 
+- allows to sum functions, for instance to fit double peak or peak with a background (see [test notebook](test_peakfit.ipynb))
+- returns parameters in a dictionary with meaningful key names
+
+[*] [_curve_fit_ documentation](https://docs.scipy.org/doc/scipy-1.5.1/reference/generated/scipy.optimize.curve_fit.html#scipy.optimize.curve_fit), non-linear least square, usually Levenberg-Marquardt algorithm
+
+_note:_ uses Jupyter notebook, and [jupytext](https://jupytext.readthedocs.io/en/latest/index.html) to pair notebooks to _light Script_ py format
+
+## Simple example
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
-
 from peakfit import *
 
-
-# Generate data
+# Generate random test data
 x = np.linspace(-5, 5, 123)
 y = 7 + 0.1*np.random.randn(*x.shape)
 y += Gauss()(x, 0.5, 1, 1)
 
-# Fit using automatic estimation of initial parameters:
+# Fit using automatic estimation of initial parameters
 results, fit = peakfit(x, y, Gauss())
 
 for r in results:
@@ -35,3 +43,11 @@ plt.xlabel('x'); plt.ylabel('y'); plt.legend();
 
 ![example_fit](./example/example_fit.png)
 
+
+## Install
+    
+Copy the `peakfit.py` file in your project folder...
+
+## Next 
+- package install
+- error estimation
