@@ -51,3 +51,6 @@ Copy the `peakfit.py` file in your project folder...
 ## Next 
 - package install
 - error estimation
+
+## Also
+- https://fityk.nieto.pl/
