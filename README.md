@@ -2,7 +2,7 @@
 
 Wrapper around scipy _curve_fit(*)_ to fit peak shaped data
 
-- include basic peak functions (Gauss, Lorentzian)
+- include basic peak functions (Gauss, Lorentzian, PseudoVoigt)
 - method to automate estimation of the initial parameters 
 - allows to sum functions, for instance to fit double peak or peak with a background (see [test notebook](test_peakfit.ipynb))
 - returns parameters in a dictionary with meaningful key names
@@ -51,6 +51,8 @@ Copy the `peakfit.py` file in your project folder...
 ## Next 
 - package install
 - error estimation
+- include function name is results ? for Sum ?
+- standard graph for verification
 
 ## Also
 - https://fityk.nieto.pl/

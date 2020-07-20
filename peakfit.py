@@ -92,6 +92,52 @@ class Lorentzian:
         return self.x0_init, self.fwhm_init, self.amplitude_init
 
 
+class PseudoVoigt:
+    """PseudoVoigt function 
+    
+    approximation of the Voigt function
+    weighted sum of Gaussian and Lorentzian function
+      
+        PV(x) = eta*G(x) + (1-eta)*L(x)
+        
+    # see:
+    # https://docs.mantidproject.org/nightly/fitting/fitfunctions/PseudoVoigt.html
+    """
+    def __init__(self, x0=None, fwhm=None, ampl=None, eta=None):
+        self.x0_init = x0
+        self.fwhm_init = fwhm
+        self.amplitude_init = ampl
+        self.eta_init = eta
+        self.param_name = [('x0', 'fwhm', 'amplitude', 'eta'), ]
+        self.name = 'PseudoVoigt'
+        
+    def __call__(self, x, x0, fwhm, amplitude, eta):
+        hwhm = fwhm / 2
+        u = x - x0
+        
+        L = hwhm/(u**2 + hwhm**2)/np.pi
+        
+        sigma = hwhm / np.sqrt(2*np.log(2))
+        norm_G = 1/(sigma * np.sqrt(2*np.pi))
+        G = norm_G * np.exp( -(x-x0)**2/(2*sigma**2) )
+        
+        I = amplitude*np.pi*hwhm/(1 + eta*(np.sqrt(np.pi*np.log(2)) - 1))
+        return ( eta*G + (1 - eta)*L ) * I
+    
+    def estimate_param(self, x, y):
+        if not self.x0_init:
+            self.x0_init = x[np.argmax(y)]
+        if not self.fwhm_init:
+            self.fwhm_init = np.ptp( x[ y  > (y.min() + y.max())/2 ] )
+        if not self.amplitude_init:
+            self.amplitude_init = np.ptp(y)
+        if not self.eta_init:
+            self.eta_init = 0.5
+            
+        return self.x0_init, self.fwhm_init, \
+                self.amplitude_init, self.eta_init
+
+
 class Sum:
     """Build a new function as the sum of two functions"""
     def __init__(self, a, b):
