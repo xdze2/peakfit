@@ -16,7 +16,7 @@
 
 import numpy as np
 from scipy.optimize import curve_fit
-
+import matplotlib.pyplot as plt
 
 # # Fit Peak
 
@@ -209,5 +209,33 @@ def peakfit(x, y, function=Gauss(), background=Linear()):
 
         result.append(res)
 
-
     return result, lambda x:function(x, *popt)
+
+
+def results_summary(results):
+    """Generate text summary of the parameters"""
+    max_length = max(len(k) for r in results for k in r.keys()
+                     if k != 'function' and 'std' not in k) + 1
+    summary = ''
+    for r in results:
+        summary += r['function'] + '\n'
+        for name, value in r.items():
+            if name == 'function' or 'std' in name:
+                continue
+            summary += f" {name+':': <{max_length}}{value: 0.3f}\n"
+    return summary
+
+
+def plot_results(x, y, results, fit):
+    """Generate summary graph of fit results"""
+    fig, ax = plt.subplots()
+    ax.plot(x, y, '.k', label='data')
+    ax.plot(x, fit(x), 'r-', label='fit')
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.legend()
+    ax.text(0.01, 0.99, results_summary(results),
+            transform=ax.transAxes,
+            fontfamily='monospace',
+            verticalalignment='top')
+    return fig

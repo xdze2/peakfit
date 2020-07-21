@@ -53,11 +53,14 @@ plt.xlabel('x'); plt.ylabel('y'); plt.legend();
 Copy the `peakfit.py` file in your project folder...
 
 ## Next
-- allow for constraint optim: define bounds
+- allows for constraint optim: define bounds
+    - Baysian MAP, using prior
+- allows for semi-automation approach
+    - i.e. output a modifiable fitting script
 - 95% confidence intervale instead of std.
 - what about Poisson noise? if I>10 the effect is negligible
 - package install
-- standard graph for verification
 
 ## Also
-- https://fityk.nieto.pl/
+- [Fityk [fi:tik] is a program for data processing and nonlinear curve fitting.](https://fityk.nieto.pl/)
+- [Bumps: data fitting and uncertainty estimation](https://github.com/bumps/bumps)
