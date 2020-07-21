@@ -55,7 +55,7 @@ Copy the `peakfit.py` file in your project folder...
 ## Next
 - allow for constraint optim: define bounds
 - 95% confidence intervale instead of std.
-- what about Poison noise?
+- what about Poisson noise? if I>10 the effect is negligible
 - package install
 - standard graph for verification
 
