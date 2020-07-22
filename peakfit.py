@@ -17,6 +17,7 @@
 import numpy as np
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
+import os
 
 # # Fit Peak
 
@@ -226,16 +227,35 @@ def results_summary(results):
     return summary
 
 
-def plot_results(x, y, results, fit):
+def plot_results(x, y,
+                 results=None, fit=None,
+                 save_path=None, save_name=None):
     """Generate summary graph of fit results"""
     fig, ax = plt.subplots()
     ax.plot(x, y, '.k', label='data')
-    ax.plot(x, fit(x), 'r-', label='fit')
+    if fit:
+        ax.plot(x, fit(x), 'r-', label='fit')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
     ax.legend()
-    ax.text(0.01, 0.99, results_summary(results),
-            transform=ax.transAxes,
-            fontfamily='monospace',
-            verticalalignment='top')
+    if results:
+        ax.text(0.01, 0.99, results_summary(results),
+                transform=ax.transAxes,
+                fontfamily='monospace',
+                verticalalignment='top')
+    if save_name:
+        ax.set_title(save_name)
+
+    if save_path:
+        if save_name:
+            figname = save_name+'.png'
+        else:
+            hashvalues = list(f"{k}_{str(v)[:5].replace('.', 'p')}"
+                              for r in results for k, v in r.items()
+                              if k != 'function' and 'std' not in k)
+            figname = '_'.join(hashvalues[:2]) + '.png'
+
+        path = os.path.join(save_path, figname)
+        fig.savefig(path)
+        
     return fig

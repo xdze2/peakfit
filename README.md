@@ -45,7 +45,7 @@ plt.xlabel('x'); plt.ylabel('y'); plt.legend();
 {'function': 'Linear', 'slope': -0.004135378131614483, 'slope_std': 0.002719507550131077, 'intercept': 7.010978784158914, 'intercept_std': 0.008891015216729381}
 ```
 
-![example_fit](./example/example_fit.png)
+![example_fit](./example/x0_0p397_fwhm_0p996.png)
 
 
 ## Install
