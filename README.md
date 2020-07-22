@@ -8,6 +8,7 @@ Wrapper around scipy _curve_fit_[^1] to fit peak shaped data
 - returns parameters in a dictionary
     * with meaningful key names
     * and standard deviation error estimated from the covariance matrix [^2]
+- method to save summary graphs for rapid visual verification
 
 [1] [_curve_fit_ documentation](https://docs.scipy.org/doc/scipy-1.5.1/reference/generated/scipy.optimize.curve_fit.html#scipy.optimize.curve_fit), non-linear least square, usually Levenberg-Marquardt algorithm
 
@@ -34,9 +35,9 @@ for r in results:
     print(r)
 
 # Graph
-plt.plot(x, y, '.k', label='data');
-plt.plot(x, fit(x), 'r-', label='fit');
-plt.xlabel('x'); plt.ylabel('y'); plt.legend();
+plot_results(x, y, results, fit,
+             save_path='./example/',
+             save_name='simple_fit');
 ```
 
 
@@ -45,7 +46,7 @@ plt.xlabel('x'); plt.ylabel('y'); plt.legend();
 {'function': 'Linear', 'slope': -0.004135378131614483, 'slope_std': 0.002719507550131077, 'intercept': 7.010978784158914, 'intercept_std': 0.008891015216729381}
 ```
 
-![example_fit](./example/x0_0p397_fwhm_0p996.png)
+![example_fit](./example/simple_fit.png)
 
 
 ## Install
